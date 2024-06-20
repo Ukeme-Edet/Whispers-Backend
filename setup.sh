@@ -38,6 +38,9 @@ FLUSH PRIVILEGES;
 EXIT;
 EOF
 
+sudo apt-get install pkg-config
+sudo apt-get install libmysqlclient-dev
+
 # Install Python and virtual environment
 echo "Installing Python and virtual environment..."
 sudo apt install -y python3-venv python3-pip
@@ -51,7 +54,7 @@ source venv/bin/activate
 # Install project dependencies
 echo "Installing project dependencies..."
 pip install --upgrade pip
-pip install requirements.txt
+pip install requirements.txt -r
 
 # Script complete
 echo "Setup complete. Don't forget to source the virtual environment: source venv/bin/activate"
