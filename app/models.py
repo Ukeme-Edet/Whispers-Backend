@@ -78,13 +78,16 @@ class Inbox(Base):
     """
 
     __tablename__ = "inboxes"
-    name = db.Column(db.String(64), index=True, unique=True)
-    user_id = db.Column(db.String(36), db.ForeignKey("users.id"))
-    url = db.Column(db.String(128))
+    name = db.Column(db.String(64), index=True, unique=True, nullable=False)
+    user_id = db.Column(
+        db.String(36), db.ForeignKey("users.id"), nullable=False
+    )
+    url = db.Column(db.String(128), index=True, unique=True, nullable=False)
     updated_at = db.Column(
         db.DateTime,
         default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp(),
+        nullable=False,
     )
     messages = db.relationship(
         "Message", backref="inbox", cascade="all, delete-orphan"
@@ -107,6 +110,8 @@ class Inbox(Base):
         for field in ["name", "user_id"]:
             if field in data:
                 setattr(self, field, data[field])
+        if "url" in data:
+            self.url = data["url"]
 
 
 class Message(Base):

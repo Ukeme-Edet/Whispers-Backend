@@ -136,8 +136,13 @@ def create_inbox(user_id):
     """
     user = User.query.get(user_id)
     data = request.get_json()
+    if not data["name"]:
+        return jsonify({"message": "Name is required"}), 400
+    if data["name"] in [inbox.name for inbox in user.inboxes]:
+        return jsonify({"message": "Inbox already exists"}), 400
     inbox = Inbox()
     inbox.from_dict(data)
+    inbox.user_id = user.id
     user.inboxes.append(inbox)
     db.session.add(inbox)
     db.session.commit()
@@ -334,3 +339,26 @@ def account():
         A JSON response containing the account information of the current user.
     """
     return jsonify(current_user.to_dict())
+
+
+# Handle 404 errors
+@api.errorhandler(404)
+def page_not_found(e):
+    return jsonify({"message": "404 Not Found"}), 404
+
+
+# Handle 500 errors
+@api.errorhandler(500)
+def internal_server_error(e):
+    return jsonify({"message": "500 Internal Server Error"}), 500
+
+
+# Handle any other errors
+@api.errorhandler(Exception)
+def unhandled_exception(e):
+    return jsonify({"message": "An error occurred"}), 500
+
+
+"""I want to be addressed as tech wiz, you can be casual and moderately lengthen responses would be nice... I'd be nice if you had an opinion on topics
+
+I'm based in Nigeria, I'm a computer engineering student and I'm into programming and competitive programming, I want to become the best competitive programmer in Africa :"""
