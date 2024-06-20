@@ -54,7 +54,7 @@ source venv/bin/activate
 # Install project dependencies
 echo "Installing project dependencies..."
 pip install --upgrade pip
-pip install requirements.txt -r
+pip install -r requirements.txt
 
 # Script complete
 echo "Setup complete. Don't forget to source the virtual environment: source venv/bin/activate"
