@@ -13,6 +13,7 @@ sudo apt update -y
 # Install MySQL server
 echo "Installing MySQL server..."
 sudo apt install -y mysql-server
+sudo apt install -y libmysqlclient-dev
 
 # Secure MySQL installation
 echo "Securing MySQL installation..."
@@ -50,11 +51,9 @@ source venv/bin/activate
 # Install project dependencies
 echo "Installing project dependencies..."
 pip install --upgrade pip
-pip install flask flask-sqlalchemy flask-cors mysqlclient pytest gunicorn python-dotenv
-
-# Create requirements.txt
-echo "Generating requirements.txt..."
-pip freeze >requirements.txt
+pip install requirements.txt
 
 # Script complete
 echo "Setup complete. Don't forget to source the virtual environment: source venv/bin/activate"
+
+gunicorn -w 4 -b 127.0.0.1:8000 run:app
