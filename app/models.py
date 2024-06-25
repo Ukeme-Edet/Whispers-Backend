@@ -110,8 +110,7 @@ class Inbox(Base):
         for field in ["name", "user_id"]:
             if field in data:
                 setattr(self, field, data[field])
-        if "url" in data:
-            self.url = data["url"]
+        self.url = f"/inboxes/{self.id}"
 
 
 class Message(Base):
@@ -120,31 +119,23 @@ class Message(Base):
     """
 
     __tablename__ = "messages"
-    subject = db.Column(db.String(128))
-    body = db.Column(db.Text)
-    read = db.Column(db.Boolean, default=False)
-    inbox_id = db.Column(db.String(36), db.ForeignKey("inboxes.id"))
-    updated_at = db.Column(
-        db.DateTime,
-        default=db.func.current_timestamp(),
-        onupdate=db.func.current_timestamp(),
+    body = db.Column(db.Text, nullable=False)
+    inbox_id = db.Column(
+        db.String(36), db.ForeignKey("inboxes.id"), nullable=False
     )
 
     def __repr__(self):
-        return f"<Message {self.subject}>"
+        return f"<Message {self.id}>"
 
     def to_dict(self):
         return {
             "id": self.id,
-            "subject": self.subject,
             "body": self.body,
-            "read": self.read,
             "inbox_id": self.inbox_id,
             "created_at": self.created_at,
-            "updated_at": self.updated_at,
         }
 
     def from_dict(self, data):
-        for field in ["subject", "body", "read", "inbox_id"]:
+        for field in ["body", "inbox_id"]:
             if field in data:
                 setattr(self, field, data[field])
