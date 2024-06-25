@@ -30,13 +30,13 @@ from app import db, bcrypt
 api = Blueprint("api", __name__)
 
 
-# @api.route("/users/", methods=["GET"])
+# @api.route("/users", methods=["GET"])
 # def get_users():
 #     users = User.query.all()
 #     return jsonify([user.to_dict() for user in users])
 
 
-@api.route("/users/<string:user_id>/", methods=["GET"])
+@api.route("/users/<string:user_id>", methods=["GET"])
 def get_user(user_id):
     """
     Retrieve a user by their ID.
@@ -52,7 +52,7 @@ def get_user(user_id):
     return jsonify(user.to_dict())
 
 
-@api.route("/users/", methods=["POST"])
+@api.route("/users", methods=["POST"])
 def create_user():
     """
     Create a new user.
@@ -67,13 +67,16 @@ def create_user():
     """
     data = request.get_json()
     user = User()
-    user.from_dict(data)
-    db.session.add(user)
-    db.session.commit()
+    try:
+        user.from_dict(data)
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
     return jsonify(user.to_dict()), 201
 
 
-@api.route("/users/<string:user_id>/", methods=["PUT"])
+@api.route("/users/<string:user_id>", methods=["PUT"])
 def update_user(user_id):
     """
     Update a user with the given user_id.
@@ -91,7 +94,7 @@ def update_user(user_id):
     return jsonify(user.to_dict())
 
 
-@api.route("/users/<string:user_id>/", methods=["DELETE"])
+@api.route("/users/<string:user_id>", methods=["DELETE"])
 def delete_user(user_id):
     """
     Delete a user from the database.
@@ -108,7 +111,7 @@ def delete_user(user_id):
     return "", 204
 
 
-@api.route("/users/<string:user_id>/inboxes/", methods=["GET"])
+@api.route("/users/<string:user_id>/inboxes", methods=["GET"])
 def get_inboxes(user_id):
     """
     Retrieve the inboxes for a specific user.
@@ -123,7 +126,7 @@ def get_inboxes(user_id):
     return jsonify([inbox.to_dict() for inbox in user.inboxes])
 
 
-@api.route("/users/<string:user_id>/inboxes/", methods=["POST"])
+@api.route("/users/<string:user_id>/inboxes", methods=["POST"])
 def create_inbox(user_id):
     """
     Create a new inbox for a user.
@@ -149,7 +152,7 @@ def create_inbox(user_id):
     return jsonify(inbox.to_dict()), 201
 
 
-@api.route("/inboxes/<string:inbox_id>/", methods=["GET"])
+@api.route("/inboxes/<string:inbox_id>", methods=["GET"])
 def get_inbox(inbox_id):
     """
     Retrieve an inbox by its ID.
@@ -169,7 +172,7 @@ def get_inbox(inbox_id):
     return jsonify(inbox.to_dict())
 
 
-@api.route("/inboxes/<string:inbox_id>/", methods=["PUT"])
+@api.route("/inboxes/<string:inbox_id>", methods=["PUT"])
 def update_inbox(inbox_id):
     """
     Update an inbox with the given inbox_id.
@@ -193,7 +196,7 @@ def update_inbox(inbox_id):
     return jsonify(inbox.to_dict())
 
 
-@api.route("/inboxes/<string:inbox_id>/", methods=["DELETE"])
+@api.route("/inboxes/<string:inbox_id>", methods=["DELETE"])
 def delete_inbox(inbox_id):
     """
     Delete an inbox.
@@ -215,7 +218,7 @@ def delete_inbox(inbox_id):
     return "", 204
 
 
-@api.route("/inboxes/<string:inbox_id>/messages/", methods=["GET"])
+@api.route("/inboxes/<string:inbox_id>/messages", methods=["GET"])
 def get_messages(inbox_id):
     """
     Retrieve messages from an inbox.
@@ -235,7 +238,7 @@ def get_messages(inbox_id):
     return jsonify([message.to_dict() for message in inbox.messages])
 
 
-@api.route("/inboxes/<string:inbox_id>/messages/", methods=["POST"])
+@api.route("/inboxes/<string:inbox_id>/messages", methods=["POST"])
 def create_message(inbox_id):
     """
     Create a new message in the specified inbox.
@@ -257,7 +260,7 @@ def create_message(inbox_id):
 
 
 # Authentication routes
-@api.route("/register/", methods=["GET", "POST"])
+@api.route("/register", methods=["GET", "POST"])
 def register():
     """
     Register a new user.
@@ -289,7 +292,7 @@ def register():
     return jsonify({"message": "Register"}), 200
 
 
-@api.route("/login/", methods=["POST"])
+@api.route("/login", methods=["POST"])
 def login():
     """
     Logs in a user by validating their email and password.
@@ -314,7 +317,7 @@ def login():
     return jsonify(user.to_dict()), 200
 
 
-@api.route("/logout/")
+@api.route("/logout")
 def logout():
     """
     Logout the user.
@@ -329,7 +332,7 @@ def logout():
     return jsonify({"message": "Logout"}), 200
 
 
-@api.route("/account/")
+@api.route("/account")
 @login_required
 def account():
     """
