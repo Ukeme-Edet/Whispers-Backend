@@ -48,7 +48,10 @@ def get_user(user_id):
         dict: A dictionary representing the user's information.
 
     """
-    user = User.query.get(user_id)
+    try:
+        user = User.query.get(user_id)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
     return jsonify(user.to_dict())
 
 
@@ -66,6 +69,12 @@ def create_user():
         A JSON response containing the newly created user data and a status code of 201.
     """
     data = request.get_json()
+    if "username" not in data or not data["username"]:
+        return jsonify({"message": "Username is required"}), 400
+    if "email" not in data or not data["email"]:
+        return jsonify({"message": "Email is required"}), 400
+    if "password" not in data or not data["password"]:
+        return jsonify({"message": "Password is required"}), 400
     user = User()
     try:
         user.from_dict(data)
@@ -87,8 +96,19 @@ def update_user(user_id):
     Returns:
         dict: A JSON response containing the updated user information.
     """
-    user = User.query.get(user_id)
     data = request.get_json()
+    if "username" not in data or not data["username"]:
+        return jsonify({"message": "Username is required"}), 400
+    if "email" not in data or not data["email"]:
+        return jsonify({"message": "Email is required"}), 400
+    if "password" not in data or not data["password"]:
+        return jsonify({"message": "Password is required"}), 400
+    try:
+        user = User.query.get(user_id)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
+    if "email" in data and User.query.filter_by(email=data["email"]).first():
+        return jsonify({"message": "Email already exists"}), 400
     user.from_dict(data)
     db.session.commit()
     return jsonify(user.to_dict())
@@ -105,7 +125,10 @@ def delete_user(user_id):
     Returns:
         str: An empty string indicating a successful deletion.
     """
-    user = User.query.get(user_id)
+    try:
+        user = User.query.get(user_id)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
     db.session.delete(user)
     db.session.commit()
     return "", 204
@@ -122,7 +145,10 @@ def get_inboxes(user_id):
     Returns:
         dict: A JSON response containing the inboxes for the user.
     """
-    user = User.query.get(user_id)
+    try:
+        user = User.query.get(user_id)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
     return jsonify([inbox.to_dict() for inbox in user.inboxes])
 
 
@@ -137,10 +163,13 @@ def create_inbox(user_id):
     Returns:
         dict: A JSON response containing the created inbox details.
     """
-    user = User.query.get(user_id)
     data = request.get_json()
     if not data["name"]:
         return jsonify({"message": "Name is required"}), 400
+    try:
+        user = User.query.get(user_id)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
     if data["name"] in [inbox.name for inbox in user.inboxes]:
         return jsonify({"message": "Inbox already exists"}), 400
     inbox = Inbox()
@@ -166,7 +195,10 @@ def get_inbox(inbox_id):
     Raises:
         Unauthorized: If the user is not authorized to access the inbox.
     """
-    inbox = Inbox.query.get(inbox_id)
+    try:
+        inbox = Inbox.query.get(inbox_id)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
     if inbox.user_id != current_user.id:
         return jsonify({"message": "Unauthorized"}), 401
     return jsonify(inbox.to_dict())
@@ -187,10 +219,15 @@ def update_inbox(inbox_id):
         HTTPException: If the user is not authorized to update the inbox.
 
     """
-    inbox = Inbox.query.get(inbox_id)
+    data = request.get_json()
+    if "name" not in data or not data["name"]:
+        return jsonify({"message": "Name is required"}), 400
+    try:
+        inbox = Inbox.query.get(inbox_id)
+    except Exception as e:
+        return jsonify({"message": str(e)}), 400
     if inbox.user_id != current_user.id:
         return jsonify({"message": "Unauthorized"}), 401
-    data = request.get_json()
     inbox.from_dict(data)
     db.session.commit()
     return jsonify(inbox.to_dict())
@@ -360,8 +397,3 @@ def internal_server_error(e):
 @api.errorhandler(Exception)
 def unhandled_exception(e):
     return jsonify({"message": "An error occurred"}), 500
-
-
-"""I want to be addressed as tech wiz, you can be casual and moderately lengthen responses would be nice... I'd be nice if you had an opinion on topics
-
-I'm based in Nigeria, I'm a computer engineering student and I'm into programming and competitive programming, I want to become the best competitive programmer in Africa :"""
