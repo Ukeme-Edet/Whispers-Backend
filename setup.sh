@@ -41,6 +41,10 @@ EOF
 sudo apt-get install pkg-config
 sudo apt-get install libmysqlclient-dev
 
+# Install Nginx
+echo "Installing Nginx..."
+sudo apt install -y nginx
+
 # Install Python and virtual environment
 echo "Installing Python and virtual environment..."
 sudo apt install -y python3-venv python3-pip
@@ -59,4 +63,22 @@ pip install -r requirements.txt
 # Script complete
 echo "Setup complete. Don't forget to source the virtual environment: source venv/bin/activate"
 
-gunicorn -w 4 -b 127.0.0.1:8000 run:app
+# Create the service file
+echo "Creating the service file..."
+sudo cp whispers.service /etc/systemd/system/
+
+# Reload the systemd manager configuration
+echo "Reloading the systemd manager configuration..."
+sudo systemctl daemon-reload
+sudo systemctl enable whispers
+
+# Configure the nginx server
+echo "Configuring the nginx server..."
+sudo cp whispers.nginx /etc/nginx/sites-available/
+sudo ln -s /etc/nginx/sites-available/whispers.nginx /etc/nginx/sites-enabled
+
+# Change the permissions of the home directory
+echo "Changing the permissions of the home directory..."
+sudo chmod 755 "$HOME"
+
+# End of script

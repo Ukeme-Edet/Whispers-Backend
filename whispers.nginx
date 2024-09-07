@@ -1,0 +1,13 @@
+server {
+	listen 80;
+	server_name whispers.0xtech-wiz.tech;
+
+	location / {
+		include proxy_params;
+		proxy_pass http://unix:/home/ubuntu/whispers-backend/whispers-service.sock;
+	}
+
+	location /static {
+		alias /home/ubuntu/whispers-backend/static;
+	}
+}
