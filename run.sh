@@ -1,6 +1,12 @@
 #!/usr/bin/bash
 # The bash script to run the project
 
+# Check the env file
+if [ ! -f .env ]; then
+	echo "The .env file does not exist. Please create one."
+	exit 1
+fi
+
 # Restart Nginx
 echo "Restarting Nginx..."
 sudo systemctl restart nginx
