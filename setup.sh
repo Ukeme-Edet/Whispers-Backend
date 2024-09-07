@@ -71,10 +71,29 @@ sudo systemctl enable whispers
 # Configure the nginx server
 echo "Configuring the nginx server..."
 sudo cp whispers.nginx /etc/nginx/sites-available/
-sudo ln -s /etc/nginx/sites-available/whispers.nginx /etc/nginx/sites-enabled
+sudo ln -sf /etc/nginx/sites-available/whispers.nginx /etc/nginx/sites-enabled
 
 # Change the permissions of the home directory
 echo "Changing the permissions of the home directory..."
 sudo chmod 755 "$HOME"
 
+# Restart Nginx
+echo "Restarting Nginx..."
+sudo systemctl restart nginx
+
+# Start the service
+echo "Starting the service..."
+sudo systemctl enable whispers
+sudo systemctl stop whispers
+sudo systemctl start whispers
+
+# Check the status of the service
+echo "Checking the status of the service..."
+sudo systemctl status whispers
+
+# Check the logs
+echo "Checking the logs..."
+sudo journalctl -u whispers
+
 # End of script
+echo "Script completed."
