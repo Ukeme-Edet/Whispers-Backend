@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 # The bash script to setup the environment for the project
 
 # Variables
@@ -12,8 +12,7 @@ sudo apt update -y
 
 # Install MySQL server
 echo "Installing MySQL server..."
-sudo apt install -y mysql-server
-sudo apt install -y libmysqlclient-dev
+sudo apt install -y mysql-server libmysqlclient-dev pkg-config
 
 # Secure MySQL installation
 echo "Securing MySQL installation..."
@@ -37,9 +36,6 @@ GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 EOF
-
-sudo apt-get install pkg-config
-sudo apt-get install libmysqlclient-dev
 
 # Install Nginx
 echo "Installing Nginx..."
