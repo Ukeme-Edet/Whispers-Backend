@@ -1,6 +1,12 @@
 #!/usr/bin/bash
 # The bash script to setup the environment for the project
 
+# Check the env file
+if [ ! -f .env ]; then
+	echo "The .env file does not exist. Please create one."
+	exit 1
+fi
+
 # Variables
 DB_NAME="whispers_db"
 DB_USER="whispers_user"
