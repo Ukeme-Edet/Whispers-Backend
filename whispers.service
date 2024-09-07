@@ -7,7 +7,7 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/Whispers-Backend
 Environment="PATH=/home/ubuntu/Whispers-Backend/venv/bin"
-ExecStart=/home/ubuntu/Whispers-Backend/venv/bin/gunicorn --workers 5 --bind unix:whispers-service.sock -m 007 run:app
+ExecStart=/home/ubuntu/Whispers-Backend/venv/bin/gunicorn --workers 2 --bind unix:whispers-service.sock -m 007 run:app
 
 [Install]
 WantedBy=multi-user.target
