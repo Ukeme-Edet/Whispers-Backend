@@ -50,9 +50,11 @@ def get_user(user_id):
     """
     try:
         user = User.query.get(user_id)
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        return jsonify(user.to_dict())
     except Exception as e:
-        return jsonify({"message": str(e)}), 400
-    return jsonify(user.to_dict())
+        return jsonify({"message": str(e)}), 500
 
 
 @api.route("/users", methods=["POST"])
@@ -81,7 +83,8 @@ def create_user():
         db.session.add(user)
         db.session.commit()
     except Exception as e:
-        return jsonify({"message": str(e)}), 400
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
     return jsonify(user.to_dict()), 201
 
 
@@ -104,14 +107,20 @@ def update_user(user_id):
     if "password" not in data or not data["password"]:
         return jsonify({"message": "Password is required"}), 400
     try:
-        user = User.query.get(user_id)
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        if (
+            "email" in data
+            and User.query.filter_by(email=data["email"]).first()
+        ):
+            return jsonify({"message": "Email already exists"}), 400
+        user.from_dict(data)
+        db.session.commit()
+        return jsonify(user.to_dict())
     except Exception as e:
-        return jsonify({"message": str(e)}), 400
-    if "email" in data and User.query.filter_by(email=data["email"]).first():
-        return jsonify({"message": "Email already exists"}), 400
-    user.from_dict(data)
-    db.session.commit()
-    return jsonify(user.to_dict())
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
 
 
 @api.route("/users/<string:user_id>", methods=["DELETE"])
@@ -127,11 +136,12 @@ def delete_user(user_id):
     """
     try:
         user = User.query.get(user_id)
+        db.session.delete(user)
+        db.session.commit()
+        return "", 204
     except Exception as e:
-        return jsonify({"message": str(e)}), 400
-    db.session.delete(user)
-    db.session.commit()
-    return "", 204
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
 
 
 @api.route("/users/<string:user_id>/inboxes", methods=["GET"])
@@ -168,17 +178,20 @@ def create_inbox(user_id):
         return jsonify({"message": "Name is required"}), 400
     try:
         user = User.query.get(user_id)
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        if data["name"] in [inbox.name for inbox in user.inboxes]:
+            return jsonify({"message": "Inbox already exists"}), 400
+        inbox = Inbox()
+        inbox.from_dict(data)
+        inbox.user_id = user.id
+        user.inboxes.append(inbox)
+        db.session.add(inbox)
+        db.session.commit()
+        return jsonify(inbox.to_dict()), 201
     except Exception as e:
-        return jsonify({"message": str(e)}), 400
-    if data["name"] in [inbox.name for inbox in user.inboxes]:
-        return jsonify({"message": "Inbox already exists"}), 400
-    inbox = Inbox()
-    inbox.from_dict(data)
-    inbox.user_id = user.id
-    user.inboxes.append(inbox)
-    db.session.add(inbox)
-    db.session.commit()
-    return jsonify(inbox.to_dict()), 201
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
 
 
 @api.route("/inboxes/<string:inbox_id>", methods=["GET"])
@@ -224,13 +237,16 @@ def update_inbox(inbox_id):
         return jsonify({"message": "Name is required"}), 400
     try:
         inbox = Inbox.query.get(inbox_id)
+        if not inbox:
+            return jsonify({"message": "Inbox not found"}), 404
+        if inbox.user_id != current_user.id:
+            return jsonify({"message": "Unauthorized"}), 401
+        inbox.from_dict(data)
+        db.session.commit()
+        return jsonify(inbox.to_dict())
     except Exception as e:
-        return jsonify({"message": str(e)}), 400
-    if inbox.user_id != current_user.id:
-        return jsonify({"message": "Unauthorized"}), 401
-    inbox.from_dict(data)
-    db.session.commit()
-    return jsonify(inbox.to_dict())
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
 
 
 @api.route("/inboxes/<string:inbox_id>", methods=["DELETE"])
@@ -247,12 +263,18 @@ def delete_inbox(inbox_id):
     Raises:
         None
     """
-    inbox = Inbox.query.get(inbox_id)
-    if inbox.user_id != current_user.id:
-        return jsonify({"message": "Unauthorized"}), 401
-    db.session.delete(inbox)
-    db.session.commit()
-    return "", 204
+    try:
+        inbox = Inbox.query.get(inbox_id)
+        if not inbox:
+            return jsonify({"message": "Inbox not found"}), 404
+        if inbox.user_id != current_user.id:
+            return jsonify({"message": "Unauthorized"}), 401
+        db.session.delete(inbox)
+        db.session.commit()
+        return "", 204
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
 
 
 @api.route("/inboxes/<string:inbox_id>/messages", methods=["GET"])
@@ -270,6 +292,8 @@ def get_messages(inbox_id):
         Unauthorized: If the user is not authorized to access the inbox.
     """
     inbox = Inbox.query.get(inbox_id)
+    if not inbox:
+        return jsonify({"message": "Inbox not found"}), 404
     if inbox.user_id != current_user.id:
         return jsonify({"message": "Unauthorized"}), 401
     return jsonify([message.to_dict() for message in inbox.messages])
@@ -286,14 +310,18 @@ def create_message(inbox_id):
     Returns:
         dict: A JSON representation of the created message.
     """
-    inbox = Inbox.query.get(inbox_id)
-    data = request.get_json()
-    message = Message()
-    message.from_dict(data)
-    inbox.messages.append(message)
-    db.session.add(message)
-    db.session.commit()
-    return jsonify(message.to_dict()), 201
+    try:
+        inbox = Inbox.query.get(inbox_id)
+        data = request.get_json()
+        message = Message()
+        message.from_dict(data)
+        inbox.messages.append(message)
+        db.session.add(message)
+        db.session.commit()
+        return jsonify(message.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
 
 
 # Authentication routes
@@ -302,11 +330,14 @@ def register():
     """
     Register a new user.
 
+    This function handles the GET and POST requests to register a new user.
+    If the request method is GET, it returns a message indicating that the user
+    should register. If the request method is POST, it validates the form data
+    and creates a new user in the database.
+
     Returns:
-        If the user is already logged in, returns a JSON response with a message indicating that the user is already logged in.
-        If the request method is POST and the form data is valid, creates a new user and returns a JSON response with the user's information.
-        If the request method is GET, returns a JSON response with a message indicating that the user is on the registration page.
-        If the form data is invalid, returns a JSON response with a message indicating the missing required fields or if the email already exists.
+        A JSON response with a success message if the user is registered successfully,
+        or an error message if the registration fails.
     """
     if current_user.is_authenticated:
         return jsonify({"message": "Already logged in"}), 400
@@ -350,7 +381,7 @@ def login():
             return jsonify({"message": "Invalid credentials"}), 400
     except Exception as e:
         return jsonify({"message": "Invalid credentials"}), 400
-    login_user(user, duration=timedelta(seconds=30))
+    login_user(user, duration=timedelta(days=1))
     return jsonify(user.to_dict()), 200
 
 
