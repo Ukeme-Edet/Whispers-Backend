@@ -97,9 +97,5 @@ sudo systemctl start whispers
 echo "Checking the status of the service..."
 sudo systemctl status whispers
 
-# Check the logs
-echo "Checking the logs..."
-sudo journalctl -u whispers
-
 # End of script
 echo "Script completed."
