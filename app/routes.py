@@ -77,6 +77,8 @@ def create_user():
         return jsonify({"message": "Email is required"}), 400
     if "password" not in data or not data["password"]:
         return jsonify({"message": "Password is required"}), 400
+    if User.query.filter_by(email=data["email"]).first():
+        return jsonify({"message": "Email already exists"}), 400
     user = User()
     try:
         user.from_dict(data)
@@ -110,10 +112,7 @@ def update_user(user_id):
         user = User.query.filter_by(id=user_id).first()
         if not user:
             return jsonify({"message": "User not found"}), 404
-        if (
-            "email" in data
-            and User.query.filter_by(email=data["email"]).first()
-        ):
+        if User.query.filter_by(email=data["email"]).first():
             return jsonify({"message": "Email already exists"}), 400
         user.from_dict(data)
         db.session.commit()
@@ -136,6 +135,8 @@ def delete_user(user_id):
     """
     try:
         user = User.query.get(user_id)
+        if not user:
+            return jsonify({"message": "User not found"}), 404
         db.session.delete(user)
         db.session.commit()
         return "", 204
@@ -157,9 +158,9 @@ def get_inboxes(user_id):
     """
     try:
         user = User.query.get(user_id)
+        return jsonify([inbox.to_dict() for inbox in user.inboxes])
     except Exception as e:
         return jsonify({"message": str(e)}), 400
-    return jsonify([inbox.to_dict() for inbox in user.inboxes])
 
 
 @api.route("/users/<string:user_id>/inboxes", methods=["POST"])
@@ -210,11 +211,13 @@ def get_inbox(inbox_id):
     """
     try:
         inbox = Inbox.query.get(inbox_id)
+        if not inbox:
+            return jsonify({"message": "Inbox not found"}), 404
+        if inbox.user_id != current_user.id:
+            return jsonify({"message": "Unauthorized"}), 401
+        return jsonify(inbox.to_dict())
     except Exception as e:
         return jsonify({"message": str(e)}), 400
-    if inbox.user_id != current_user.id:
-        return jsonify({"message": "Unauthorized"}), 401
-    return jsonify(inbox.to_dict())
 
 
 @api.route("/inboxes/<string:inbox_id>", methods=["PUT"])
@@ -311,8 +314,10 @@ def create_message(inbox_id):
         dict: A JSON representation of the created message.
     """
     try:
-        inbox = Inbox.query.get(inbox_id)
         data = request.get_json()
+        inbox = Inbox.query.get(inbox_id)
+        if not inbox:
+            return jsonify({"message": "Inbox not found"}), 404
         message = Message()
         message.from_dict(data)
         inbox.messages.append(message)
@@ -351,11 +356,15 @@ def register():
             return jsonify({"message": "Username is required"}), 400
         if User.query.filter_by(email=request.form.get("email")).first():
             return jsonify({"message": "Email already exists"}), 400
-        user = User()
-        user.from_dict(request.form)
-        db.session.add(user)
-        db.session.commit()
-        return jsonify(user.to_dict()), 201
+        try:
+            user = User()
+            user.from_dict(request.form)
+            db.session.add(user)
+            db.session.commit()
+            return jsonify(user.to_dict()), 201
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"message": str(e)}), 500
     # return render_template("register.html")
     return jsonify({"message": "Register"}), 200
 
