@@ -240,6 +240,7 @@ def update_inbox(inbox_id):
         HTTPException: If the user is not authorized to update the inbox.
 
     """
+    user_id = request.headers.get("User-Id")
     data = request.get_json()
     if "name" not in data or not data["name"]:
         return jsonify({"message": "Name is required"}), 400
@@ -247,7 +248,7 @@ def update_inbox(inbox_id):
         inbox = Inbox.query.get(inbox_id)
         if not inbox:
             return jsonify({"message": "Inbox not found"}), 404
-        if inbox.user_id != current_user.id:
+        if inbox.user_id != user_id:
             return jsonify({"message": "Unauthorized"}), 401
         inbox.from_dict(data)
         db.session.commit()
@@ -271,11 +272,12 @@ def delete_inbox(inbox_id):
     Raises:
         None
     """
+    user_id = request.headers.get("User-Id")
     try:
         inbox = Inbox.query.get(inbox_id)
         if not inbox:
             return jsonify({"message": "Inbox not found"}), 404
-        if inbox.user_id != current_user.id:
+        if inbox.user_id != user_id:
             return jsonify({"message": "Unauthorized"}), 401
         db.session.delete(inbox)
         db.session.commit()
