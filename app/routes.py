@@ -177,6 +177,7 @@ def create_inbox(user_id):
     from os import getenv
 
     load_dotenv()
+    base_url = getenv("BASE_URL")
     data = request.get_json()
     if not data["name"]:
         return jsonify({"message": "Name is required"}), 400
@@ -187,12 +188,13 @@ def create_inbox(user_id):
         if data["name"] in [inbox.name for inbox in user.inboxes]:
             return jsonify({"message": "Inbox already exists"}), 400
         inbox = Inbox()
-        host_name = getenv("HOST_NAME")
-        data["url"] = f"{host_name}/inboxes/{inbox.id}"
+        inbox.user_id = user.id
         data["user_id"] = user.id
-        inbox.from_dict(data)
         user.inboxes.append(inbox)
         db.session.add(inbox)
+        db.session.commit()
+        data["url"] = f"{base_url}/inboxes/{inbox.id}"
+        inbox.from_dict(data)
         db.session.commit()
         return jsonify(inbox.to_dict()), 201
     except Exception as e:

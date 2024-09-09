@@ -80,14 +80,11 @@ class Inbox(Base):
     """
 
     __tablename__ = "inboxes"
-    id = db.Column(
-        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    name = db.Column(db.String(64), index=True, unique=True, nullable=False)
+    name = db.Column(db.String(64), nullable=False, default="")
     user_id = db.Column(
         db.String(36), db.ForeignKey("users.id"), nullable=False
     )
-    url = db.Column(db.String(128), index=True, unique=True, nullable=False)
+    url = db.Column(db.String(128), index=True, nullable=False, default="")
     updated_at = db.Column(
         db.DateTime,
         default=db.func.current_timestamp(),
