@@ -220,8 +220,6 @@ def get_inbox(inbox_id):
         inbox = Inbox.query.get(inbox_id)
         if not inbox:
             return jsonify({"message": "Inbox not found"}), 404
-        if inbox.user_id != current_user.id:
-            return jsonify({"message": "Unauthorized"}), 401
         return jsonify(inbox.to_dict())
     except Exception as e:
         return jsonify({"message": str(e)}), 400
