@@ -112,7 +112,6 @@ class Inbox(Base):
         for field in ["name", "user_id", "url"]:
             if field in data:
                 setattr(self, field, data[field])
-        self.url = f"/inboxes/{self.id}"
 
 
 class Message(Base):

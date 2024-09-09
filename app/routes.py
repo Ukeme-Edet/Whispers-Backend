@@ -26,9 +26,12 @@ from flask import Blueprint, jsonify, request
 from flask_login import login_user, current_user, logout_user, login_required
 from app.models import User, Inbox, Message
 from app import db, bcrypt
+from dotenv import load_dotenv
+from os import getenv
 
 api = Blueprint("api", __name__)
 
+load_dotenv()
 
 # @api.route("/users", methods=["GET"])
 # def get_users():
@@ -184,10 +187,10 @@ def create_inbox(user_id):
         if data["name"] in [inbox.name for inbox in user.inboxes]:
             return jsonify({"message": "Inbox already exists"}), 400
         inbox = Inbox()
-        data["url"] = f"/inboxes/{inbox.id}"
+        host_name = getenv("HOST_NAME")
+        data["url"] = f"{host_name}/inboxes/{inbox.id}"
         data["user_id"] = user.id
         inbox.from_dict(data)
-        inbox.user_id = user.id
         user.inboxes.append(inbox)
         db.session.add(inbox)
         db.session.commit()
