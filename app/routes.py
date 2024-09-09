@@ -26,12 +26,8 @@ from flask import Blueprint, jsonify, request
 from flask_login import login_user, current_user, logout_user, login_required
 from app.models import User, Inbox, Message
 from app import db, bcrypt
-from dotenv import load_dotenv
-from os import getenv
 
 api = Blueprint("api", __name__)
-
-load_dotenv()
 
 # @api.route("/users", methods=["GET"])
 # def get_users():
@@ -177,6 +173,10 @@ def create_inbox(user_id):
     Returns:
         dict: A JSON response containing the created inbox details.
     """
+    from dotenv import load_dotenv
+    from os import getenv
+
+    load_dotenv()
     data = request.get_json()
     if not data["name"]:
         return jsonify({"message": "Name is required"}), 400
