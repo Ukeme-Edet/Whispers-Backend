@@ -95,6 +95,9 @@ class Inbox(Base):
         "Message", backref="inbox", cascade="all, delete-orphan"
     )
 
+    def __init__(self) -> None:
+        super().__init__()
+
     def __repr__(self):
         return f"<Inbox {self.name}>"
 
