@@ -80,6 +80,9 @@ class Inbox(Base):
     """
 
     __tablename__ = "inboxes"
+    id = db.Column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
     name = db.Column(db.String(64), index=True, unique=True, nullable=False)
     user_id = db.Column(
         db.String(36), db.ForeignKey("users.id"), nullable=False
@@ -95,9 +98,6 @@ class Inbox(Base):
         "Message", backref="inbox", cascade="all, delete-orphan"
     )
 
-    def __init__(self) -> None:
-        super().__init__()
-
     def __repr__(self):
         return f"<Inbox {self.name}>"
 
@@ -108,7 +108,7 @@ class Inbox(Base):
             "user_id": self.user_id,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
-            "url": f"/inboxes/{self.id}",
+            "url": self.url,
         }
 
     def from_dict(self, data):
