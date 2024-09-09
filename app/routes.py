@@ -299,9 +299,8 @@ def get_messages(inbox_id):
     Raises:
         Unauthorized: If the user is not authorized to access the inbox.
     """
-    data = request.headers.get("User-Id")
+    user_id = request.headers.get("User-Id")
     inbox = Inbox.query.get(inbox_id)
-    user_id = data.get("user_id")
     if not inbox:
         return jsonify({"message": "Inbox not found"}), 404
     if inbox.user_id != user_id:
