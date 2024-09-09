@@ -301,10 +301,12 @@ def get_messages(inbox_id):
     Raises:
         Unauthorized: If the user is not authorized to access the inbox.
     """
+    data = request.headers.get("User-Id")
     inbox = Inbox.query.get(inbox_id)
+    user_id = data.get("user_id")
     if not inbox:
         return jsonify({"message": "Inbox not found"}), 404
-    if inbox.user_id != current_user.id:
+    if inbox.user_id != user_id:
         return jsonify({"message": "Unauthorized"}), 401
     return jsonify([message.to_dict() for message in inbox.messages])
 
@@ -443,4 +445,4 @@ def internal_server_error(e):
 # Handle any other errors
 @api.errorhandler(Exception)
 def unhandled_exception(e):
-    return jsonify({"message": "An error occurred"}), 500
+    return jsonify({"message": str(e)}), 500
