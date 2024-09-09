@@ -184,6 +184,8 @@ def create_inbox(user_id):
         if data["name"] in [inbox.name for inbox in user.inboxes]:
             return jsonify({"message": "Inbox already exists"}), 400
         inbox = Inbox()
+        data["url"] = f"/inboxes/{inbox.id}"
+        data["user_id"] = user.id
         inbox.from_dict(data)
         inbox.user_id = user.id
         user.inboxes.append(inbox)

@@ -109,7 +109,7 @@ class Inbox(Base):
         }
 
     def from_dict(self, data):
-        for field in ["name", "user_id"]:
+        for field in ["name", "user_id", "url"]:
             if field in data:
                 setattr(self, field, data[field])
         self.url = f"/inboxes/{self.id}"
