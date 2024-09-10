@@ -111,7 +111,10 @@ def update_user(user_id):
         user = User.query.filter_by(id=user_id).first()
         if not user:
             return jsonify({"message": "User not found"}), 404
-        if User.query.filter_by(email=data["email"]).first():
+        if (
+            "email" in data
+            and User.query.filter_by(email=data["email"]).first()
+        ):
             return jsonify({"message": "Email already exists"}), 400
         user.from_dict(data)
         db.session.commit()
