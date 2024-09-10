@@ -101,12 +101,12 @@ def update_user(user_id):
         dict: A JSON response containing the updated user information.
     """
     data = request.get_json()
-    if "username" not in data or not data["username"]:
-        return jsonify({"message": "Username is required"}), 400
-    if "email" not in data or not data["email"]:
-        return jsonify({"message": "Email is required"}), 400
-    if "password" not in data or not data["password"]:
-        return jsonify({"message": "Password is required"}), 400
+    # if "username" not in data or not data["username"]:
+    #     return jsonify({"message": "Username is required"}), 400
+    # if "email" not in data or not data["email"]:
+    #     return jsonify({"message": "Email is required"}), 400
+    # if "password" not in data or not data["password"]:
+    #     return jsonify({"message": "Password is required"}), 400
     try:
         user = User.query.filter_by(id=user_id).first()
         if not user:
@@ -250,6 +250,8 @@ def update_inbox(inbox_id):
             return jsonify({"message": "Inbox not found"}), 404
         if inbox.user_id != user_id:
             return jsonify({"message": "Unauthorized"}), 401
+        if "url" in data:
+            del data["url"]
         inbox.from_dict(data)
         db.session.commit()
         return jsonify(inbox.to_dict())
