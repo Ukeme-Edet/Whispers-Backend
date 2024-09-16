@@ -84,6 +84,7 @@ class Inbox(Base):
     user_id = db.Column(
         db.String(36), db.ForeignKey("users.id"), nullable=False
     )
+    url = db.Column(db.String(128), nullable=True, default="")
     updated_at = db.Column(
         db.DateTime,
         default=db.func.current_timestamp(),
