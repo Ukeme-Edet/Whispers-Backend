@@ -84,7 +84,6 @@ class Inbox(Base):
     user_id = db.Column(
         db.String(36), db.ForeignKey("users.id"), nullable=False
     )
-    url = db.Column(db.String(128), index=True, nullable=False, default="")
     updated_at = db.Column(
         db.DateTime,
         default=db.func.current_timestamp(),
@@ -109,7 +108,7 @@ class Inbox(Base):
         }
 
     def from_dict(self, data):
-        for field in ["name", "user_id", "url"]:
+        for field in ["name", "user_id"]:
             if field in data:
                 setattr(self, field, data[field])
 

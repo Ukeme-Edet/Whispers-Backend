@@ -196,7 +196,6 @@ def create_inbox(user_id):
         user.inboxes.append(inbox)
         db.session.add(inbox)
         db.session.commit()
-        data["url"] = f"{base_url}/inboxes/{inbox.id}"
         inbox.from_dict(data)
         db.session.commit()
         return jsonify(inbox.to_dict()), 201
