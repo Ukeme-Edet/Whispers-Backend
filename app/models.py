@@ -104,7 +104,6 @@ class Inbox(Base):
             "user_id": self.user_id,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
-            "url": self.url,
         }
 
     def from_dict(self, data):
