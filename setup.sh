@@ -23,8 +23,8 @@ WORKERS=${WORKERS:-$DEFAULT_WORKERS}
 
 # --- Check the env file ---
 if [ ! -f .env ]; then
-	echo "The .env file does not exist. Please create one."
-	exit 1
+    echo "The .env file does not exist. Please create one."
+    exit 1
 fi
 
 # --- Extract DB vars ---
@@ -32,8 +32,8 @@ DB_NAME=$(grep DB_NAME .env | cut -d '=' -f2)
 DB_USER=$(grep DB_USER .env | cut -d '=' -f2)
 DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d '=' -f2)
 if [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
-	echo "One or more environment variables are missing in the .env file."
-	exit 1
+    echo "One or more environment variables are missing in the .env file."
+    exit 1
 fi
 
 # --- Install system packages ---
@@ -65,7 +65,6 @@ CREATE DATABASE IF NOT EXISTS $DB_NAME;
 CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';
 GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';
 FLUSH PRIVILEGES;
-EXIT;
 EOF
 
 echo "Installing Nginx..."
